@@ -108,6 +108,7 @@ export default function SignupForm() {
       password: formData.get('password'),
       passwordCheck: formData.get('passwordCheck'),
       phone: formData.get('phone'),
+      zipCode: formData.get('zipCode'),
       address: formData.get('address'),
     };
     //zod로 전체 검증
@@ -270,7 +271,6 @@ export default function SignupForm() {
             />
           </div>
           {!!error.zipCode && <p className="label-s w-full text-negative mx-[23%] mt-2">{error.zipCode}</p>}
-
           {/* 상세주소 */}
           <Input
             id="address"

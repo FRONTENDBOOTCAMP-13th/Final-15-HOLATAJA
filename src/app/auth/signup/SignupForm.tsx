@@ -8,8 +8,9 @@ import { signupAction } from '@/data/actions/auth';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import Modal from '@/components/Modal';
+import AddressCode from '@/components/AddressCode';
 
-type FormField = 'email' | 'name' | 'password' | 'passwordCheck' | 'phone' | 'address';
+type FormField = 'email' | 'name' | 'password' | 'passwordCheck' | 'phone' | 'address' | 'zipCode';
 
 //Zod 스키마 정의
 const signupSchema = z.object({
@@ -25,11 +26,12 @@ const signupSchema = z.object({
     .string()
     .min(1, '휴대폰 번호를 입력해주세요')
     .regex(/^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/, '올바른 휴대폰 번호 형식이 아닙니다 (예: 010-1234-5678)'),
+  zipCode: z.string().min(1, '우편번호를 입력해주세요'),
   address: z.string().min(1, '주소를 입력해주세요').min(5, '주소는 5자 이상이어야 합니다'),
 });
 
 export default function SignupForm() {
-  const initInputState = { email: '', name: '', password: '', passwordCheck: '', phone: '', address: '' };
+  const initInputState = { email: '', name: '', password: '', passwordCheck: '', phone: '', zipCode: '', address: '' };
   const initTouchedState = Object.fromEntries(Object.keys(initInputState).map(key => [key, false]));
   const [formData, setFormData] = useState(initInputState);
   const [error, setError] = useState(initInputState);
@@ -106,6 +108,7 @@ export default function SignupForm() {
       password: formData.get('password'),
       passwordCheck: formData.get('passwordCheck'),
       phone: formData.get('phone'),
+      zipCode: formData.get('zipCode'),
       address: formData.get('address'),
     };
     //zod로 전체 검증
@@ -117,6 +120,7 @@ export default function SignupForm() {
       password: '',
       passwordCheck: '',
       phone: '',
+      zipCode: '',
       address: '',
     };
 
@@ -129,6 +133,7 @@ export default function SignupForm() {
         password: zodErrors.password?.[0] || '',
         passwordCheck: zodErrors.passwordCheck?.[0] || '',
         phone: zodErrors.phone?.[0] || '',
+        zipCode: zodErrors.zipCode?.[0] || '',
         address: zodErrors.address?.[0] || '',
       };
     }
@@ -233,9 +238,40 @@ export default function SignupForm() {
             onBlur={handleInputBlur('phone')}
             disabled={isPending}
           />
+
           {!!error.phone && <p className="label-s w-full text-negative mx-[23%] mt-2">{error.phone}</p>}
         </div>
-        <div>
+        {/* 주소 영역 */}
+        <div className="flex flex-col gap-4">
+          {/* 우편번호 */}
+          <div className="flex gap-2 items-end">
+            <Input
+              id="zipCode"
+              name="zipCode"
+              label="우편번호"
+              type="text"
+              gap="gap-4"
+              placeholder="우편번호"
+              value={formData.zipCode}
+              onChange={handleInputChange('zipCode')}
+              onBlur={handleInputBlur('zipCode')}
+              disabled={isPending}
+            />
+            {/* 주소검색 버튼 */}
+            <AddressCode
+              onSelectAddress={(zip, road) => {
+                setFormData(prev => ({
+                  ...prev,
+                  zipCode: zip ?? '',
+                  address: road ?? '',
+                }));
+                updateFieldError('zipCode', zip);
+                updateFieldError('address', road);
+              }}
+            />
+          </div>
+          {!!error.zipCode && <p className="label-s w-full text-negative mx-[23%] mt-2">{error.zipCode}</p>}
+          {/* 상세주소 */}
           <Input
             id="address"
             name="address"
